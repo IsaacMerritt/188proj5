@@ -163,6 +163,23 @@ class DigitClassificationModel(object):
     def __init__(self):
         # Initialize your model parameters here
         "*** YOUR CODE HERE ***"
+        self.learning_rate = .25
+        self.batch_size_ratio = .1
+        self.threshold = 0.98
+        self.hidden_layers = [
+            [
+                nn.Parameter(784, 250),
+                nn.Parameter(1, 250),
+                nn.Parameter(250, 784),
+                nn.Parameter(1,784)
+            ],
+            [
+                nn.Parameter(784, 50),
+                nn.Parameter(1, 50),
+                nn.Parameter(50, 10),
+                nn.Parameter(1,10)
+            ],
+        ]
 
     def run(self, x):
         """
@@ -179,6 +196,15 @@ class DigitClassificationModel(object):
                 (also called logits)
         """
         "*** YOUR CODE HERE ***"
+        y = x
+        for layer in self.hidden_layers:
+            y = nn.Linear(y, layer[0])
+            y = nn.AddBias(y, layer[1])
+            y = nn.ReLU(y)
+            y = nn.Linear(y, layer[2])
+            y = nn.AddBias(y, layer[3])
+        return y
+        
 
     def get_loss(self, x, y):
         """
@@ -194,12 +220,36 @@ class DigitClassificationModel(object):
         Returns: a loss node
         """
         "*** YOUR CODE HERE ***"
+        predictions = self.run(x)
+        return nn.SoftmaxLoss(predictions, y)
+
+
+    def get_parameters(self):
+        params = []
+        for layer in self.hidden_layers:
+            for param in layer:
+                params.append(param)
+        return params
 
     def train(self, dataset):
         """
         Trains the model.
         """
         "*** YOUR CODE HERE ***"
+        batch_size = int(self.batch_size_ratio * dataset.x.shape[0])
+        while len(dataset.x) % batch_size != 0:
+            batch_size += 1
+        while True:
+            for x, y in dataset.iterate_once(batch_size):
+                
+                loss = self.get_loss(x,y)
+                params = self.get_parameters()
+                gradients = nn.gradients(loss, params)
+                for i in range(len(params)):
+                    param = params[i]
+                    param.update(gradients[i], -self.learning_rate)
+            if dataset.get_validation_accuracy() > self.threshold:
+                break
 
 class LanguageIDModel(object):
     """
