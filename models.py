@@ -1,4 +1,5 @@
 import nn
+import numpy as np
 
 class PerceptronModel(object):
     def __init__(self, dimensions):
@@ -45,7 +46,16 @@ class PerceptronModel(object):
         """
         Train the perceptron until convergence.
         """
-        "*** YOUR CODE HERE ***"
+        "*** YOUR CODE HERE ***" 
+        while True:
+            mistake = 0
+            for x, y in dataset.iterate_once(1):
+                class_prediction = self.get_prediction(x)
+                if class_prediction != nn.as_scalar(y):
+                    mistake = 1
+                    self.w.update(x, nn.as_scalar(y))
+            if not mistake:
+                break
 
 class RegressionModel(object):
     """
@@ -55,7 +65,12 @@ class RegressionModel(object):
     """
     def __init__(self):
         # Initialize your model parameters here
-        "*** YOUR CODE HERE ***"
+        self.learning_rate = .1
+        self.batch_size_ratio = .1 # batch size is ratio * len(dataset)
+        self.threshold = 0.002
+        self.num_layers = 2
+        self.layer_sizes = [300, 300]
+        self.hidden_layers = []
 
     def run(self, x):
         """
@@ -67,6 +82,15 @@ class RegressionModel(object):
             A node with shape (batch_size x 1) containing predicted y-values
         """
         "*** YOUR CODE HERE ***"
+        y = x
+        for layer in self.hidden_layers:
+            y = nn.Linear(y, layer[0])
+            y = nn.AddBias(y, layer[1])
+            y = nn.ReLU(y)
+            y = nn.Linear(y, layer[2])
+            y = nn.AddBias(y, layer[3])
+        return y
+
 
     def get_loss(self, x, y):
         """
@@ -79,12 +103,48 @@ class RegressionModel(object):
         Returns: a loss node
         """
         "*** YOUR CODE HERE ***"
+        predictions = self.run(x)
+        return nn.SquareLoss(predictions, y)
+
+
+    def get_parameters(self):
+            params = []
+            for layer in self.hidden_layers:
+                for param in layer:
+                    params.append(param)
+            return params
 
     def train(self, dataset):
         """
         Trains the model.
         """
         "*** YOUR CODE HERE ***"
+        batch_size = int(self.batch_size_ratio * dataset.x.shape[0])
+        while len(dataset.x) % batch_size != 0:
+            batch_size += 1
+        self.hidden_layers = [
+            ([
+                nn.Parameter(dataset.x.shape[1], self.layer_sizes[i]),
+                nn.Parameter(1,self.layer_sizes[i]),
+                nn.Parameter(self.layer_sizes[i], dataset.x.shape[1]),
+                nn.Parameter(1,1)
+            ])
+            for i in range(self.num_layers)
+        ]
+        while True:
+            losses = []
+            for x, y in dataset.iterate_once(batch_size):
+                loss = self.get_loss(x,y)
+                params = self.get_parameters()
+                gradients = nn.gradients(loss, params)
+                for i in range(len(params)):
+                    param = params[i]
+                    param.update(gradients[i], -self.learning_rate)
+                losses.append(nn.as_scalar(loss))
+            if np.mean(losses) < self.threshold:
+                break
+
+
 
 class DigitClassificationModel(object):
     """
