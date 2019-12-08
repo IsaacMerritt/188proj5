@@ -165,7 +165,7 @@ class DigitClassificationModel(object):
         "*** YOUR CODE HERE ***"
         self.learning_rate = .25
         self.batch_size_ratio = .1
-        self.threshold = 0.98
+        self.threshold = 0.973
         self.hidden_layers = [
             [
                 nn.Parameter(784, 250),
@@ -269,9 +269,9 @@ class LanguageIDModel(object):
 
         # Initialize your model parameters here
         "*** YOUR CODE HERE ***"
-        self.learning_rate = .005
+        self.learning_rate = .001
         self.batch_size = 1
-        self.threshold = 0.8101
+        self.threshold = 0.82
         self.hidden_size = 800
 
         self.hidden_bias = nn.Parameter(self.batch_size,self.num_chars)
