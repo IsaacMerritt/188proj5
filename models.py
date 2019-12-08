@@ -269,6 +269,20 @@ class LanguageIDModel(object):
 
         # Initialize your model parameters here
         "*** YOUR CODE HERE ***"
+        self.learning_rate = .005
+        self.batch_size = 1
+        self.threshold = 0.8101
+        self.hidden_size = 800
+
+        self.hidden_bias = nn.Parameter(self.batch_size,self.num_chars)
+        self.hidden_weights = nn.Parameter(self.num_chars, self.hidden_size)
+        self.b0 = nn.Parameter(self.batch_size,self.hidden_size)
+        self.weights = nn.Parameter(self.hidden_size, self.num_chars)
+        self.b1 = nn.Parameter(self.batch_size,self.num_chars)
+        self.final_weights = nn.Parameter(self.num_chars, len(self.languages))
+
+
+
 
     def run(self, xs):
         """
@@ -301,6 +315,37 @@ class LanguageIDModel(object):
         """
         "*** YOUR CODE HERE ***"
 
+        hidden_state = xs[0]
+        hidden_layer = nn.AddBias(hidden_state, self.hidden_bias)
+
+        for x in xs[1:]:
+            layer = x
+            #layer_weighted = nn.Linear(layer, self.hidden_weights)
+            #hidden_layer_weighted = nn.Linear(hidden_layer,self.weights)
+            layer = nn.Add(layer, hidden_layer)
+            layer = nn.Linear(layer, self.hidden_weights)
+            layer = nn.AddBias(layer, self.b0)
+            layer = nn.ReLU(layer)
+            layer = nn.Linear(layer, self.weights)
+            layer = nn.AddBias(layer, self.b1)
+            hidden_layer = layer
+        
+        layer = nn.Linear(hidden_layer, self.hidden_weights)
+        layer = nn.AddBias(layer, self.b0)
+        layer = nn.ReLU(layer)
+        layer = nn.Linear(layer, self.weights)
+        layer = nn.AddBias(layer, self.b1)
+        layer = nn.ReLU(layer)
+
+        y_predictions = nn.Linear(layer, self.final_weights)
+        return y_predictions
+
+
+    def get_parameters(self):
+        return [self.weights,self.b0,self.hidden_weights,self.b1,self.final_weights]
+
+
+
     def get_loss(self, xs, y):
         """
         Computes the loss for a batch of examples.
@@ -316,9 +361,22 @@ class LanguageIDModel(object):
         Returns: a loss node
         """
         "*** YOUR CODE HERE ***"
+        predictions = self.run(xs)
+        return nn.SoftmaxLoss(predictions, y)
 
     def train(self, dataset):
         """
         Trains the model.
         """
         "*** YOUR CODE HERE ***"
+        while True:
+            for x, y in dataset.iterate_once(self.batch_size):
+                
+                loss = self.get_loss(x,y)
+                params = self.get_parameters()
+                gradients = nn.gradients(loss, params)
+                for i in range(len(params)):
+                    param = params[i]
+                    param.update(gradients[i], -self.learning_rate)
+            if dataset.get_validation_accuracy() > self.threshold:
+                break
