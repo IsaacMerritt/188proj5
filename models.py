@@ -163,20 +163,20 @@ class DigitClassificationModel(object):
     def __init__(self):
         # Initialize your model parameters here
         "*** YOUR CODE HERE ***"
-        self.learning_rate = .25
-        self.batch_size_ratio = .1
-        self.threshold = 0.973
+        self.learning_rate = .09
+        self.batch_size_ratio = .005
+        self.threshold = 0.971
         self.hidden_layers = [
             [
-                nn.Parameter(784, 250),
-                nn.Parameter(1, 250),
-                nn.Parameter(250, 784),
+                nn.Parameter(784, 150),
+                nn.Parameter(1, 150),
+                nn.Parameter(150, 784),
                 nn.Parameter(1,784)
             ],
             [
-                nn.Parameter(784, 50),
-                nn.Parameter(1, 50),
-                nn.Parameter(50, 10),
+                nn.Parameter(784, 100),
+                nn.Parameter(1, 100),
+                nn.Parameter(100, 10),
                 nn.Parameter(1,10)
             ],
         ]
