@@ -46,7 +46,7 @@ class PerceptronModel(object):
         """
         Train the perceptron until convergence.
         """
-        "*** YOUR CODE HERE ***" 
+        "*** YOUR CODE HERE ***"
         while True:
             mistake = 0
             for x, y in dataset.iterate_once(1):
@@ -204,7 +204,7 @@ class DigitClassificationModel(object):
             y = nn.Linear(y, layer[2])
             y = nn.AddBias(y, layer[3])
         return y
-        
+
 
     def get_loss(self, x, y):
         """
@@ -241,7 +241,7 @@ class DigitClassificationModel(object):
             batch_size += 1
         while True:
             for x, y in dataset.iterate_once(batch_size):
-                
+
                 loss = self.get_loss(x,y)
                 params = self.get_parameters()
                 gradients = nn.gradients(loss, params)
@@ -329,7 +329,7 @@ class LanguageIDModel(object):
             layer = nn.Linear(layer, self.weights)
             layer = nn.AddBias(layer, self.b1)
             hidden_layer = layer
-        
+
         layer = nn.Linear(hidden_layer, self.hidden_weights)
         layer = nn.AddBias(layer, self.b0)
         layer = nn.ReLU(layer)
@@ -371,7 +371,7 @@ class LanguageIDModel(object):
         "*** YOUR CODE HERE ***"
         while True:
             for x, y in dataset.iterate_once(self.batch_size):
-                
+
                 loss = self.get_loss(x,y)
                 params = self.get_parameters()
                 gradients = nn.gradients(loss, params)
